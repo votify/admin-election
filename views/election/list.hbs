@@ -1,0 +1,22 @@
+<div class="mx-auto shadow w-50 mt-5 election-list p-2">
+    <div class="d-flex flex-row-reverse">
+        <a href="/elections/new" class="btn btn-success">Add Election</a>
+    </div>
+    {{#each elections}}
+    <div class="card mt-3" style="width: 100%;">
+        <div class="card-body">
+            <h5 class="card-title">{{this.name}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{this.year}}</h6>
+            <div class="card-text">
+                <ul>
+                    {{#each this.nominees}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            <div>Deadline: {{this.deadline}}</div>
+            <a href="/elections/extent" class="btn btn-primary">Extent Deadline</a>
+        </div>
+    </div>
+    {{/each}}
+</div>

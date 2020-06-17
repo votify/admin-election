@@ -1,0 +1,114 @@
+<div class="mx-auto shadow w-50 mt-5 election-list p-2">
+    <a href="/elections/" class="btn btn-success">Return</a>
+    <h6 class="mt-2 error"></h6>
+    <form id="logInForm" class="d-flex flex-column align-items-center mt-4">
+        <div class="form-group w-75">
+            <label for="exampleInputText">Name:</label>
+            <input type="text" name="name" class="form-control" id="electionName">
+        </div>
+        <div class="form-group w-75">
+            <label for="exampleInputText">Year:</label>
+            <select class="custom-select" id="yearElected">
+                <option value="{{thisYear}}" selected>{{thisYear}}</option>
+                <option value="{{nextYear}}">{{nextYear}}</option>
+            </select>
+        </div>
+        <div class="form-group w-75">
+            <label for="exampleInputNominees">Nominees:</label>
+            <input type="text" class="form-control mb-2" id="nominee1">
+            <input type="text" class="form-control mb-2" id="nominee2">
+            <div class="d-flex justify-content-between button-box">
+                <button type="button" class="btn btn-success" id="addNominees">Add Nominee</button>
+                <button type="button" class="btn btn-success" id="deleteNominees">Delete Nominee</button>
+            </div>
+        </div>
+        <div class="form-group w-75">
+            <label for="exampleInputNominees">Deadline:</label>
+            <div class="input-group date">
+                <input type="text" class="form-control" id="deadline"><span class="input-group-addon"><i
+                        class="glyphicon glyphicon-calendar"></i></span>
+            </div>
+
+        </div>
+        <button type="button" class="btn btn-primary" id="getResult">Submit</button>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var inputIndex = 2;
+
+        $(".input-group.date").datepicker({
+            format: "d/m/yyyy",
+            todayHighlight: true,
+            autoclose: true,
+        });
+        $("#addNominees").click((event) => {
+            if (inputIndex === 2) {
+                $("#deleteNominees").attr("disable", "false");
+            }
+            inputIndex++;
+            $(`<input type="text" class="form-control mb-2" id="nominee${inputIndex}">`).insertBefore(".button-box");
+        });
+
+        $("#getResult").click((event) => {
+            let nominees = [];
+            let name = $("#electionName").val();
+            let deadline = $("#deadline").val()
+            let year = parseInt($("#yearElected").val());
+            for (let index = 1; index <= inputIndex; index++) {
+                let nominee = $(`#nominee${index}`).val();
+                if (nominee !== "") {
+                    nominees.push(nominee);
+                } else {
+                    warning("Nominee name must not be empty");
+                    return;
+                }
+            }
+
+            if (name === "") {
+                warning("Election name must not be empty");
+                return;
+            }
+
+            if (deadline === "") {
+                warning("Deadline must not be empty");
+                return;
+            }
+
+            $.ajax({
+                url: "/elections/new",
+                type: "POST",
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify({ year, name, nominees, deadline }),
+                success: function (data) {
+                    if (data.status !== 200) {
+                        warning(data.msg);
+                    } else {
+                        window.location.replace("/elections");
+                    }
+                },
+                error: function () {
+                    warning("error");
+                }
+            });
+        });
+
+        const warning = (msg) => {
+            console.log(msg);
+            $(".error").text(`*${msg}*`);
+        }
+
+        $("#deleteNominees").click((event) => {
+            if (inputIndex > 2) {
+                $(`#nominee${inputIndex}`).remove();
+                inputIndex--;
+            } else {
+                if ($("#deleteNominees").attr("disable") !== "true") {
+                    $("#deleteNominees").attr("disable", "true");
+                }
+            }
+        });
+    })
+</script>

@@ -1,0 +1,71 @@
+<div class="mx-auto shadow w-50 mt-5 election-list p-2">
+    <a href="/elections/" class="btn btn-success">Return</a>
+    <h6 class="mt-2 error"></h6>
+    <form id="logInForm" class="d-flex flex-column align-items-center mt-4">
+        <div class="form-group w-75">
+            <label for="exampleInputText">Name: {{name}}</label>
+        </div>
+        <div class="form-group w-75">
+            <label for="exampleInputText">Year: {{year}}</label>
+        </div>
+        <div class="form-group w-75">
+            <label for="exampleInputNominees">Nominees:</label>
+            <ul>
+                {{#each nominees}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+        <div class="form-group w-75">
+            <label for="exampleInputNominees">Deadline:</label>
+            <div class="input-group date">
+                <input type="text" class="form-control" id="deadline"><span class="input-group-addon"><i
+                        class="glyphicon glyphicon-calendar"></i></span>
+            </div>
+
+        </div>
+        <button type="button" class="btn btn-primary" id="getResult">Submit</button>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var inputIndex = 2;
+
+        $(".input-group.date").datepicker({
+            format: "d/m/yyyy",
+            todayHighlight: true,
+            autoclose: true,
+        });
+
+        $("#getResult").click((event) => {
+            if (deadline === "") {
+                warning("Deadline must not be empty");
+                return;
+            }
+
+            $.ajax({
+                url: "/elections/extent",
+                type: "POST",
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify({ deadline, newDeadline }),
+                success: function (data) {
+                    if (data.status !== 200) {
+                        warning(data.msg);
+                    } else {
+                        window.location.replace("/elections");
+                    }
+                },
+                error: function () {
+                    warning("error");
+                }
+            });
+        });
+
+        const warning = (msg) => {
+            console.log(msg);
+            $(".error").text(`*${msg}*`);
+        }
+    })
+</script>
