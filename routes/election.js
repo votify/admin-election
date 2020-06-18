@@ -1,10 +1,11 @@
 var express = require("express");
 var fetch = require("node-fetch");
 var moment = require("moment");
+var auth = require("../middlewares/auth");
 var router = express.Router();
 
 /* GET home page. */
-router.get("/", function (req, res, next) {
+router.get("/", auth, function (req, res, next) {
   fetch("https://blockchain-node-01.herokuapp.com/elections", {
     headers: {
       "Content-Type": "application/json",
@@ -13,7 +14,6 @@ router.get("/", function (req, res, next) {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
       for (let index = 0; index < data.length; index++) {
         data[index].deadline = moment(data[index].deadline).format(
           "MMM Do, YYYY"
@@ -31,7 +31,7 @@ router.get("/", function (req, res, next) {
     });
 });
 
-router.get("/new", function (req, res, next) {
+router.get("/new", auth, function (req, res, next) {
   res.render("election/new", {
     title: "Add Election",
     style:
@@ -76,7 +76,7 @@ router.post("/new", function (req, res, next) {
   }
 });
 
-router.get("/extent", function (req, res, next) {
+router.get("/extent", auth, function (req, res, next) {
   res.render("election/new", {
     title: "Add Election",
     style:
@@ -87,6 +87,11 @@ router.get("/extent", function (req, res, next) {
     script:
       '<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.min.js"></script>',
   });
+});
+
+router.get("/logout", auth, (req, res, next) => {
+  req.logOut();
+  res.redirect("/");
 });
 
 module.exports = router;

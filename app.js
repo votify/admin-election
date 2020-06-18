@@ -20,6 +20,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+require("./middlewares/session")(app);
+require("./middlewares/passport")(app);
+
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/elections", electionRouter);
