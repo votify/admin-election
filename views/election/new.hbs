@@ -24,10 +24,7 @@
         </div>
         <div class="form-group w-75">
             <label for="exampleInputNominees">Deadline:</label>
-            <div class="input-group date">
-                <input type="text" class="form-control" id="deadline"><span class="input-group-addon"><i
-                        class="glyphicon glyphicon-calendar"></i></span>
-            </div>
+            <input id="datepicker" width="276" value="{{defaultDeadline}}" />
 
         </div>
         <button type="button" class="btn btn-primary" id="getResult">Submit</button>
@@ -38,10 +35,11 @@
     $(document).ready(function () {
         var inputIndex = 2;
 
-        $(".input-group.date").datepicker({
-            format: "d/m/yyyy",
-            todayHighlight: true,
-            autoclose: true,
+        let currentDeadline = $("#datepicker").val();
+        $('#datepicker').datepicker({
+            uiLibrary: 'bootstrap4',
+            format: 'd/m/yyyy',
+            minDate: currentDeadline,
         });
         $("#addNominees").click((event) => {
             if (inputIndex === 2) {
@@ -54,7 +52,7 @@
         $("#getResult").click((event) => {
             let nominees = [];
             let name = $("#electionName").val();
-            let deadline = $("#deadline").val()
+            let deadline = $("#datepicker").val();
             let year = parseInt($("#yearElected").val());
             for (let index = 1; index <= inputIndex; index++) {
                 let nominee = $(`#nominee${index}`).val();

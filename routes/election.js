@@ -36,20 +36,19 @@ router.get("/new", auth, function (req, res, next) {
     title: "Add Election",
     style:
       "<link rel='stylesheet' href='/stylesheets/electionList.css' />" +
-      "<link rel=”stylesheet” href=”https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/css/bootstrap-datepicker3.min.css”>",
+      '<link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />',
     thisYear: new Date().getFullYear(),
     nextYear: new Date().getFullYear() + 1,
+    defaultDeadline: moment().add(1, "month").format("D/M/YYYY"),
     script:
-      '<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.min.js"></script>',
+      '<script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>',
   });
 });
 
 router.post("/new", function (req, res, next) {
   const { year, name, nominees, deadline } = req.body;
   let deadlineMoment = moment(deadline, "D-M-YYYY");
-  if (deadlineMoment.valueOf() < moment().add(1, "month").valueOf()) {
-    res.json({ status: 400, msg: "deadline must be in the future" });
-  } else if (deadlineMoment.year() !== year) {
+  if (deadlineMoment.year() !== year) {
     res.json({
       status: 400,
       msg: "deadline must be in the same election year",
@@ -67,7 +66,11 @@ router.post("/new", function (req, res, next) {
     })
       .then((response) => response.json())
       .then((resData) => {
-        res.json({ status: 200 });
+        if (resData.status) {
+          res.json({ status: 200 });
+        } else {
+          res.json({ status: 400, msg: "Election name and year is repeated" });
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -76,17 +79,68 @@ router.post("/new", function (req, res, next) {
   }
 });
 
-router.get("/extent", auth, function (req, res, next) {
-  res.render("election/new", {
-    title: "Add Election",
-    style:
-      "<link rel='stylesheet' href='/stylesheets/electionList.css' />" +
-      "<link rel=”stylesheet” href=”https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/css/bootstrap-datepicker3.min.css”>",
-    year,
+router.get("/extent/:id", auth, function (req, res, next) {
+  let id = req.params.id;
+  fetch(`https://blockchain-node-01.herokuapp.com/elections/${id}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const { result } = data;
 
-    script:
-      '<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.min.js"></script>',
-  });
+      if (result !== null) {
+        let previousDeadline = moment(result.deadline).format("D/M/YYYY");
+        res.render("election/extent", {
+          title: "Add Election",
+          style:
+            "<link rel='stylesheet' href='/stylesheets/electionList.css' />" +
+            '<link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />',
+          name: result.name,
+          year: result.year,
+          nominees: result.nominees,
+          deadline: previousDeadline,
+
+          script:
+            '<script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>',
+        });
+      } else {
+        next();
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      next(error);
+    });
+});
+
+router.post("/extent", function (req, res, next) {
+  const { year, name, deadline } = req.body;
+  let deadlineMoment = moment(deadline, "D-M-YYYY");
+  let data = { year, name, newDeadline: deadlineMoment.valueOf() };
+  console.log(data);
+  fetch("https://blockchain-node-01.herokuapp.com/extentelection", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.json())
+    .then((resData) => {
+      if (resData.status) {
+        res.json({ status: 200 });
+      } else {
+        res.json({ status: 400, msg: "Election name and year is repeated" });
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      next(error);
+    });
 });
 
 router.get("/logout", auth, (req, res, next) => {

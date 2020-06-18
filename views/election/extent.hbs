@@ -3,10 +3,10 @@
     <h6 class="mt-2 error"></h6>
     <form id="logInForm" class="d-flex flex-column align-items-center mt-4">
         <div class="form-group w-75">
-            <label for="exampleInputText">Name: {{name}}</label>
+            <label for="exampleInputText" id="nameLabel">Name: {{name}}</label>
         </div>
         <div class="form-group w-75">
-            <label for="exampleInputText">Year: {{year}}</label>
+            <label for="exampleInputText" id="yearLabel">Year: {{year}}</label>
         </div>
         <div class="form-group w-75">
             <label for="exampleInputNominees">Nominees:</label>
@@ -18,10 +18,7 @@
         </div>
         <div class="form-group w-75">
             <label for="exampleInputNominees">Deadline:</label>
-            <div class="input-group date">
-                <input type="text" class="form-control" id="deadline"><span class="input-group-addon"><i
-                        class="glyphicon glyphicon-calendar"></i></span>
-            </div>
+            <input id="datepicker" width="276" value="{{deadline}}" />
 
         </div>
         <button type="button" class="btn btn-primary" id="getResult">Submit</button>
@@ -31,17 +28,28 @@
 <script>
     $(document).ready(function () {
         var inputIndex = 2;
-
-        $(".input-group.date").datepicker({
-            format: "d/m/yyyy",
-            todayHighlight: true,
-            autoclose: true,
+        let currentDeadline = $("#datepicker").val();
+        $('#datepicker').datepicker({
+            uiLibrary: 'bootstrap4',
+            format: 'd/m/yyyy',
+            minDate: currentDeadline,
         });
 
         $("#getResult").click((event) => {
-            if (deadline === "") {
+            let nameLabel = $("#nameLabel").text();
+            let name = nameLabel.substring(nameLabel.indexOf(" ") + 1);
+
+            let yearLabel = $("#yearLabel").text();
+            let year = yearLabel.substring(yearLabel.indexOf(" ") + 1);
+
+            let newDeadline = $("#datepicker").val();
+            if (newDeadline === "") {
                 warning("Deadline must not be empty");
                 return;
+            }
+            if (currentDeadline === newDeadline) {
+                warning("Deadline must be new");
+                return
             }
 
             $.ajax({
@@ -49,7 +57,7 @@
                 type: "POST",
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
-                data: JSON.stringify({ deadline, newDeadline }),
+                data: JSON.stringify({ year, name, deadline: newDeadline }),
                 success: function (data) {
                     if (data.status !== 200) {
                         warning(data.msg);
